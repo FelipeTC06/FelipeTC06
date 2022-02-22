@@ -1,4 +1,4 @@
-## Olá! Eu sou o Felipe Torres
+## Hi there, I'm Felipe Torres
 
 - 💼 I work with front end
 - 📚 Studying Angular
