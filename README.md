@@ -10,3 +10,6 @@
   <img height="180em" src="https://github-readme-stats.vercel.app/api?username=FelipeTC06&show_icons=true&theme=chartreuse-dark&include_all_commits=true&count_private=true"/>
   <img height="180em" src="https://github-readme-stats.vercel.app/api/top-langs/?username=FelipeTC06&layout=compact&langs_count=7&theme=chartreuse-dark"/>
 </div>
+
+  ![FelipeTC06's GitHub stats](https://github-readme-stats.vercel.app/api?username=FelipeTC06&show_icons=true&theme=chartreuse-dark)
+  [![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=FelipeTC06&layout=compact)](https://github.com/FelipeTC06/github-readme-stats)
