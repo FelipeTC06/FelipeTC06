@@ -1,7 +1,6 @@
 ## Hi there, I'm Felipe Torres
 
-- 💼 I work with front end
-- 📚 Studying Angular
+- 🤯 Full-stack developer
 - 🌎 I speak portuguese, english and french
 - 🏄‍♀️ Passionate about sports
 
