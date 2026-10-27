@@ -31,6 +31,14 @@ jobs:
 
       - run: pip install -r requirements.txt
 
+      - name: Cache background-removal model
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.u2net
+            ~/.rembg
+          key: rembg-u2net_human_seg-v1
+
       - name: Download current GitHub avatar
         run: |
           mkdir -p data

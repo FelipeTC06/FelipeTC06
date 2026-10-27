@@ -7,7 +7,7 @@ no JavaScript, so it animates inside GitHub's <img> sandbox.
 Usage:
     python scripts/make_ascii_svg.py [input.png] [output.svg]
 Env:
-    COLS   number of character columns (default 84)
+    COLS   number of character columns (default 90)
     STATIC set to 1 to skip the animation (useful for previews)
 """
 import os
@@ -21,7 +21,7 @@ from PIL import Image
 SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("data/portrait.png")
 OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else Path("felipe-ascii.svg")
 
-COLS = int(os.environ.get("COLS", "84"))
+COLS = int(os.environ.get("COLS", "90"))
 STATIC = os.environ.get("STATIC") == "1"
 
 # Light to dark; leading space makes a white background vanish.

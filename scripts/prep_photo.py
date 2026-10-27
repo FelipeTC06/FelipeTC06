@@ -5,7 +5,7 @@ Steps:
 2. Remove the background: flood-fill from the four corners with a colour
    tolerance, so any background connected to the edges becomes white.
    (If the optional `rembg` package is installed it is used instead.)
-3. Boost local contrast (CLAHE-like via Pillow autocontrast + equalize blend).
+3. Boost global and local contrast (autocontrast/equalize blend + unsharp mask).
 4. Composite on white and save as data/portrait.png (grayscale).
 
 Usage:
@@ -22,12 +22,13 @@ OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else Path("data/portrait.png")
 
 def remove_background(img: Image.Image) -> Image.Image:
     """Return an RGBA image with the background made transparent."""
-    try:  # best quality when available (heavy dependency, optional)
-        from rembg import remove  # type: ignore
+    try:  # best quality when available (optional dependency)
+        from rembg import new_session, remove  # type: ignore
 
-        return remove(img.convert("RGBA"))
-    except Exception:
-        pass
+        session = new_session("u2net_human_seg")  # ~170 MB, made for portraits
+        return remove(img.convert("RGBA"), session=session)
+    except Exception as exc:  # fall back to the flood fill below
+        print(f"rembg unavailable ({exc.__class__.__name__}); using flood-fill fallback")
 
     rgb = img.convert("RGB")
     # Work on a slightly blurred copy so JPEG noise does not stop the fill.
@@ -80,6 +81,8 @@ def main() -> None:
     eq = ImageOps.equalize(flat)
     ac = ImageOps.autocontrast(flat, cutoff=1)
     flat = Image.blend(ac, eq, 0.35)
+    # Local contrast so eyes, nose and mouth survive the downscale.
+    flat = flat.filter(ImageFilter.UnsharpMask(radius=6, percent=120, threshold=2))
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     flat.save(OUT)
