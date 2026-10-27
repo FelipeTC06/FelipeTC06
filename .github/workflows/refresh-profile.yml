@@ -52,19 +52,7 @@ jobs:
       - name: Generate info card
         run: python scripts/make_info_card.py info-card.svg
 
-      - name: Count commits on all branches (counts only) and render the isometric graph
-        env:
-          # CONTRIB_TOKEN: a PAT of the profile owner with `repo` scope. With it,
-          # every commit on every branch of every repo is counted (private
-          # included). Only per-day totals are stored. Without it the script
-          # falls back to the public contribution calendar.
-          CONTRIB_TOKEN: ${{ secrets.CONTRIB_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python scripts/fetch_commits_all_branches.py "${{ github.repository_owner }}" data/contributions.json
-          python scripts/render_iso_svg.py data/contributions.json contrib-iso.svg
-
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: refresh profile graphics [skip ci]"
-          file_pattern: "felipe-ascii.svg info-card.svg contrib-iso.svg data/contributions.json data/avatar.png data/portrait.png"
+          file_pattern: "felipe-ascii.svg info-card.svg data/avatar.png data/portrait.png"
