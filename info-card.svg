@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="490" height="355" viewBox="0 0 490 355">
+<style>
+text{font-family:'JetBrains Mono','Fira Code','SFMono-Regular',Consolas,'Courier New',monospace;font-size:12.5px;fill:#c9d1d9;white-space:pre}
+.k{font-weight:700}.dim{fill:#8b949e}.pr{fill:#56d364}.at{fill:#8b949e}.hn{fill:#79c0ff}
+.card{fill:#0d1117;stroke:#30363d}.bar{fill:#161b22}
+@media (prefers-color-scheme:light){.card{fill:#ffffff;stroke:#d0d7de}.bar{fill:#f6f8fa}text{fill:#24292f}.dim,.at{fill:#57606a}.pr{fill:#1a7f37}.hn{fill:#0969da}}
+@keyframes in{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}.ln{opacity:0;animation:in .45s ease-out forwards}
+</style>
+<rect class="card" x=".5" y=".5" width="489" height="354" rx="8"/>
+<path class="bar" d="M.5 8.5a8 8 0 0 1 8-8h473a8 8 0 0 1 8 8v22H.5z"/>
+<circle cx="16" cy="15" r="5" fill="#ff5f56"/>
+<circle cx="32" cy="15" r="5" fill="#ffbd2e"/>
+<circle cx="48" cy="15" r="5" fill="#27c93f"/>
+<text class="dim" x="245.0" y="19.5" text-anchor="middle">felipe@github: ~</text>
+<g class="ln" style="animation-delay:0.12s"><text x="18" y="44"><tspan class="pr">felipe</tspan><tspan class="at">@</tspan><tspan class="hn">github</tspan><tspan class="dim"> ~ $ </tspan>neofetch</text></g>
+<g class="ln" style="animation-delay:0.19s"><line x1="18" y1="57" x2="472" y2="57" stroke="#30363d" stroke-width="1"/></g>
+<g class="ln" style="animation-delay:0.26s"><text class="k" x="18" y="78" fill="#ff7b72" style="fill:#ff7b72">Name</text><text class="dim" x="96" y="78">:</text><text x="110" y="78">Felipe Torres Cresto</text></g>
+<g class="ln" style="animation-delay:0.33s"><text class="k" x="18" y="95" fill="#ffa657" style="fill:#ffa657">Now</text><text class="dim" x="96" y="95">:</text><text x="110" y="95">AI Engineer · LLM agents, MCP, RAG, evals</text></g>
+<g class="ln" style="animation-delay:0.40s"><text class="k" x="18" y="112" fill="#d2a8ff" style="fill:#d2a8ff">Prev</text><text class="dim" x="96" y="112">:</text><text x="110" y="112">Full-stack (Angular + Node) for US banks,</text></g>
+<g class="ln" style="animation-delay:0.47s"><text x="110" y="129">remote since 2021</text></g>
+<g class="ln" style="animation-delay:0.54s"><text class="k" x="18" y="146" fill="#79c0ff" style="fill:#79c0ff">Stack</text><text class="dim" x="96" y="146">:</text><text x="110" y="146">TypeScript · Node/NestJS · Angular · Python</text></g>
+<g class="ln" style="animation-delay:0.61s"><text x="110" y="163">PostgreSQL + pgvector · Kafka · Prisma</text></g>
+<g class="ln" style="animation-delay:0.68s"><text class="k" x="18" y="180" fill="#56d364" style="fill:#56d364">Highlights</text><text class="dim" x="96" y="180">:</text><text x="110" y="180">MCP server (OAuth 2.1) + MCP client</text></g>
+<g class="ln" style="animation-delay:0.75s"><text x="110" y="197">multi-provider LLM gateway (cost/latency)</text></g>
+<g class="ln" style="animation-delay:0.82s"><text x="110" y="214">RAG on pgvector · golden-set + LLM-as-judge evals</text></g>
+<g class="ln" style="animation-delay:0.89s"><text class="k" x="18" y="231" fill="#f778ba" style="fill:#f778ba">Daily</text><text class="dim" x="96" y="231">:</text><text x="110" y="231">Claude Code · Codex · Cursor</text></g>
+<g class="ln" style="animation-delay:0.96s"><text class="k" x="18" y="248" fill="#a5d6ff" style="fill:#a5d6ff">Langs</text><text class="dim" x="96" y="248">:</text><text x="110" y="248">Português · English · Français</text></g>
+<g class="ln" style="animation-delay:1.03s"><text class="k" x="18" y="265" fill="#ffdf5d" style="fill:#ffdf5d">Likes</text><text class="dim" x="96" y="265">:</text><text x="110" y="265">sports, surf, shipping things that feel fast</text></g>
+<g class="ln" style="animation-delay:1.10s"><text class="k" x="18" y="282" fill="#ff7b72" style="fill:#ff7b72">Contact</text><text class="dim" x="96" y="282">:</text><text x="110" y="282">felipe.t.cresto@gmail.com</text></g>
+<g class="ln" style="animation-delay:1.17s"><text x="110" y="299">linkedin.com/in/felipe-torres-cresto</text></g>
+<g class="ln" style="animation-delay:1.24s"><rect x="110" y="312" width="18" height="12" rx="2" fill="#ff7b72"/><rect x="132" y="312" width="18" height="12" rx="2" fill="#ffa657"/><rect x="154" y="312" width="18" height="12" rx="2" fill="#d2a8ff"/><rect x="176" y="312" width="18" height="12" rx="2" fill="#79c0ff"/><rect x="198" y="312" width="18" height="12" rx="2" fill="#56d364"/><rect x="220" y="312" width="18" height="12" rx="2" fill="#f778ba"/><rect x="242" y="312" width="18" height="12" rx="2" fill="#a5d6ff"/><rect x="264" y="312" width="18" height="12" rx="2" fill="#ffdf5d"/></g>
+</svg>

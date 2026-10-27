@@ -1,0 +1,55 @@
+name: Refresh profile README
+
+on:
+  schedule:
+    - cron: "17 6 * * *"   # daily, ~06:17 UTC
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - "requirements.txt"
+      - ".github/workflows/refresh-profile.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-profile
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Download current GitHub avatar
+        run: |
+          mkdir -p data
+          curl -sSL -o data/avatar.png "https://github.com/${{ github.repository_owner }}.png?size=600"
+
+      - name: Generate portrait
+        run: |
+          python scripts/prep_photo.py data/avatar.png data/portrait.png
+          python scripts/make_ascii_svg.py data/portrait.png felipe-ascii.svg
+
+      - name: Generate info card
+        run: python scripts/make_info_card.py info-card.svg
+
+      - name: Fetch contributions and render heatmap
+        run: |
+          python scripts/fetch_contributions.py "${{ github.repository_owner }}" data/contributions.json
+          python scripts/render_heatmap_svg.py data/contributions.json contrib-heatmap.svg
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: refresh profile graphics [skip ci]"
+          file_pattern: "felipe-ascii.svg info-card.svg contrib-heatmap.svg data/contributions.json"
