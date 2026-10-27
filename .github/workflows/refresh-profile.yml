@@ -60,11 +60,10 @@ jobs:
           # falls back to the public contribution calendar.
           CONTRIB_TOKEN: ${{ secrets.CONTRIB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GROUP: week
-          LEGEND: "0"
+          DAYS: "30"
         run: |
           python scripts/fetch_commits_all_branches.py "${{ github.repository_owner }}" data/contributions.json
-          python scripts/render_city_svg.py data/contributions.json contrib-city.svg
+          python scripts/render_commit_city_svg.py data/contributions.json contrib-city.svg
           python scripts/render_heatmap_svg.py data/contributions.json contrib-heatmap.svg
 
       - uses: stefanzweifel/git-auto-commit-action@v5
