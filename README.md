@@ -2,7 +2,7 @@
 
 <h3><code>felipe@github ~ $ ./contributions.sh</code></h3>
 
-<img src="./contrib-city.svg" width="860" alt="Contribution city: one building per day, height = commits" />
+<img src="./contrib-city.svg" width="860" alt="Commit city: one building per week, height = commits on all branches" />
 
 <br><br>
 

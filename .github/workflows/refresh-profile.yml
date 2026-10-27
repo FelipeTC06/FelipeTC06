@@ -52,14 +52,18 @@ jobs:
       - name: Generate info card
         run: python scripts/make_info_card.py info-card.svg
 
-      - name: Fetch contributions (counts only) and render the city
+      - name: Count commits on all branches (counts only) and render the city
         env:
-          # A token owned by the profile owner makes the calendar include
-          # private contributions. Only per-day counts are stored.
+          # CONTRIB_TOKEN: a PAT of the profile owner with `repo` scope. With it,
+          # every commit on every branch of every repo is counted (private
+          # included). Only per-day totals are stored. Without it the script
+          # falls back to the public contribution calendar.
           CONTRIB_TOKEN: ${{ secrets.CONTRIB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GROUP: week
+          LEGEND: "0"
         run: |
-          python scripts/fetch_contributions.py "${{ github.repository_owner }}" data/contributions.json
+          python scripts/fetch_commits_all_branches.py "${{ github.repository_owner }}" data/contributions.json
           python scripts/render_city_svg.py data/contributions.json contrib-city.svg
           python scripts/render_heatmap_svg.py data/contributions.json contrib-heatmap.svg
 

@@ -1,16 +1,23 @@
-"""Render data/contributions.json as a "city": one building per day.
+"""Render data/contributions.json as a "city" of buildings.
 
 Oblique projection drawn with plain shapes (front face, lit top, shaded
-side). Weeks run left to right, weekdays run front (Sunday) to back
-(Saturday). Building height is the square root of the day's count.
-Buildings rise in a wave from the front row to the back, then a leader
-line points at the busiest day. CSS keyframes only, no JavaScript, so it
-animates inside GitHub's <img>.
+side). Building height is the square root of the count. Buildings rise in
+a wave, then (optionally) a leader line points at the busiest one. CSS
+keyframes only, no JavaScript, so it animates inside GitHub's <img>.
+
+Modes (env GROUP):
+    day   one building per day: weeks left to right, weekdays front (Sun)
+          to back (Sat); wave rises front row to back.
+    week  one building per week (default): a single skyline, wave rises
+          left to right.
+
+Env:
+    GROUP   day | week (default week)
+    LEGEND  1 to draw the busiest-day callout and the footer line (default 0)
+    STATIC  1 for the final frame, no animation
 
 Usage:
     python scripts/render_city_svg.py [input.json] [output.svg]
-Env:
-    STATIC=1  final frame, no animation
 """
 import datetime as dt
 import json
@@ -22,16 +29,8 @@ from pathlib import Path
 SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("data/contributions.json")
 OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else Path("contrib-city.svg")
 STATIC = os.environ.get("STATIC") == "1"
-
-CELL = 11          # building footprint width
-GAP = 3
-PITCH = CELL + GAP
-DX, DY = 7, 5      # depth offset per row (back = up and to the right)
-MAX_H = 120        # height of the busiest day
-MIN_H = 1.5        # slab for empty days
-LEFT = 24
-BOTTOM_PAD = 56    # room for month labels + footer
-TOP_PAD = 46       # room for the busiest-day callout
+GROUP = os.environ.get("GROUP", "week")
+LEGEND = os.environ.get("LEGEND", "0") == "1"
 
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -51,6 +50,25 @@ LIGHT = [
     ("#216e39", "#3b9452", "#174d28"),
 ]
 
+if GROUP == "week":
+    CELL, GAP, DX, DY, MAX_H, ROWS = 11, 4, 9, 6, 120, 1
+else:
+    CELL, GAP, DX, DY, MAX_H, ROWS = 11, 3, 7, 5, 120, 7
+PITCH = CELL + GAP
+MIN_H = 1.5
+LEFT = 24
+TOP_PAD = 46 if LEGEND else 16
+BOTTOM_PAD = 56 if LEGEND else 30
+
+
+def level_for(count: int, thresholds: list[int]) -> int:
+    if count == 0:
+        return 0
+    for i, t in enumerate(thresholds):
+        if count <= t:
+            return i + 1
+    return 4
+
 
 def main() -> None:
     data = json.loads(SRC.read_text(encoding="utf-8"))
@@ -60,12 +78,32 @@ def main() -> None:
     last = dt.date.fromisoformat(days[-1]["date"])
     start = first - dt.timedelta(days=(first.weekday() + 1) % 7)  # back to Sunday
     weeks = (last - start).days // 7 + 1
-    max_count = max((d["count"] for d in days), default=0)
-    best = data.get("best_day") or max(days, key=lambda d: d["count"])
-    scale = MAX_H / math.sqrt(max_count) if max_count else 0
 
-    base_y = TOP_PAD + MAX_H + 6 * DY           # ground line of the front row
-    W = LEFT + weeks * PITCH + 6 * DX + CELL + 24
+    # cells: (col, row, count, level, label_date)
+    cells = []
+    if GROUP == "week":
+        totals = []
+        for w in range(weeks):
+            ds = [by_date.get((start + dt.timedelta(weeks=w, days=r)).isoformat()) for r in range(7)]
+            totals.append(sum(d["count"] for d in ds if d))
+        nonzero = sorted(t for t in totals if t)
+        thr = [nonzero[min(len(nonzero) - 1, int(len(nonzero) * p))] for p in (0.25, 0.5, 0.75)] if nonzero else [0, 0, 0]
+        for w, t in enumerate(totals):
+            cells.append((w, 0, t, level_for(t, thr), start + dt.timedelta(weeks=w)))
+    else:
+        for w in range(weeks):
+            for r in range(7):
+                d = start + dt.timedelta(weeks=w, days=r)
+                rec = by_date.get(d.isoformat())
+                if rec:
+                    cells.append((w, r, rec["count"], rec["level"], d))
+
+    max_count = max((c[2] for c in cells), default=0)
+    scale = MAX_H / math.sqrt(max_count) if max_count else 0
+    best = max(cells, key=lambda c: c[2]) if cells else None
+
+    base_y = TOP_PAD + MAX_H + (ROWS - 1) * DY
+    W = LEFT + weeks * PITCH + (ROWS - 1) * DX + CELL + 24
     H = base_y + BOTTOM_PAD
 
     css = [
@@ -80,7 +118,6 @@ def main() -> None:
                + "".join(f".f{i}{{fill:{f}}}.t{i}{{fill:{t}}}.s{i}{{fill:{s}}}" for i, (f, t, s) in enumerate(LIGHT))
                + "text{fill:#57606a}.foot,.call{fill:#24292f}.num,.dot{fill:#1a7f37}"
                + ".lead{stroke:#57606a}.ground{stroke:#d0d7de}}")
-    rise_total = 0.0
     if not STATIC:
         css.append("@keyframes rise{from{transform:scaleY(0)}to{transform:scaleY(1)}}"
                    ".b{transform:scaleY(0);animation:rise .7s cubic-bezier(.2,.9,.3,1.15) forwards}"
@@ -89,43 +126,35 @@ def main() -> None:
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">',
            "<style>", *css, "</style>"]
 
-    # ground lines for each row, back to front, so the city sits on something
-    for row in range(6, -1, -1):
+    # ground line per row (back to front)
+    for row in range(ROWS - 1, -1, -1):
+        n = sum(1 for c in cells if c[1] == row)
         x0 = LEFT + row * DX
         y = base_y - row * DY + 0.5
-        n = sum(1 for w in range(weeks) if (start + dt.timedelta(weeks=w, days=row)).isoformat() in by_date)
         out.append(f'<line class="ground" x1="{x0}" y1="{y}" x2="{x0 + n * PITCH - GAP}" y2="{y}" opacity=".5"/>')
 
     best_top = None
     delays = []
-    # draw back rows first, then left to right inside a row
-    for row in range(6, -1, -1):
-        for w in range(weeks):
-            d = start + dt.timedelta(weeks=w, days=row)
-            rec = by_date.get(d.isoformat())
-            if rec is None:
-                continue
-            count, lvl = rec["count"], rec["level"]
+    for row in range(ROWS - 1, -1, -1):          # back rows first
+        for col, r, count, lvl, when in (c for c in cells if c[1] == row):
             h = max(MIN_H, math.sqrt(count) * scale) if count else MIN_H
-            x = LEFT + w * PITCH + row * DX
-            y = base_y - row * DY          # ground y for this building
+            x = LEFT + col * PITCH + row * DX
+            y = base_y - row * DY
             top = y - h
-            delay = row * 0.16 + w * 0.012
+            delay = (row * 0.16 + col * 0.012) if GROUP == "day" else col * 0.045
             delays.append(delay)
             anim = "" if STATIC else f' class="b" style="transform-origin:{x}px {y}px;animation-delay:{delay:.3f}s"'
+            title = f"{count} commits, week of {when.isoformat()}" if GROUP == "week" else f"{count} on {when.isoformat()}"
             out.append(
-                f'<g{anim}>'
-                f'<title>{count} on {d.isoformat()}</title>'
+                f'<g{anim}><title>{title}</title>'
                 f'<rect class="f{lvl}" x="{x}" y="{top:.2f}" width="{CELL}" height="{h:.2f}"/>'
                 f'<polygon class="t{lvl}" points="{x},{top:.2f} {x + CELL},{top:.2f} '
                 f'{x + CELL + DX},{top - DY:.2f} {x + DX},{top - DY:.2f}"/>'
                 f'<polygon class="s{lvl}" points="{x + CELL},{top:.2f} {x + CELL + DX},{top - DY:.2f} '
-                f'{x + CELL + DX},{y - DY:.2f} {x + CELL},{y:.2f}"/>'
-                f'</g>'
+                f'{x + CELL + DX},{y - DY:.2f} {x + CELL},{y:.2f}"/></g>'
             )
-            if d.isoformat() == best["date"] and count > 0:
+            if best and (col, r) == (best[0], best[1]) and count > 0:
                 best_top = (x + CELL / 2 + DX / 2, top - DY / 2)
-
     rise_total = (max(delays) + 0.7) if delays else 0
 
     # month labels along the front edge
@@ -138,34 +167,33 @@ def main() -> None:
                 continue
             out.append(f'<text x="{LEFT + w * PITCH}" y="{base_y + 16}">{MONTHS[d.month - 1]}</text>')
 
-    # callout for the busiest day
-    if best_top:
+    if LEGEND and best_top:
         bx, by = best_top
-        when = dt.date.fromisoformat(best["date"]).strftime("%-d %b %Y")
-        label = f'{best["count"]} contribution{"s" if best["count"] != 1 else ""} · {when}'
+        when = best[4]
+        if GROUP == "week":
+            label = f'{best[2]} commits · week of {when.strftime("%-d %b %Y")}'
+        else:
+            label = f'{best[2]} contributions · {when.strftime("%-d %b %Y")}'
         ty = 18
-        # keep the label inside the canvas
-        tx = min(max(bx + 24, 80), W - 170)
-        anchor = "start"
+        tx = min(max(bx + 24, 80), W - 190)
         fade = "" if STATIC else f' style="opacity:0;animation:fade .6s ease-out {rise_total + 0.2:.2f}s forwards"'
         out.append(
             f'<g{fade}><polyline class="lead" points="{bx:.1f},{by:.1f} {bx:.1f},{ty + 8} {tx - 6:.1f},{ty + 8}"/>'
             f'<circle class="dot" cx="{bx:.1f}" cy="{by:.1f}" r="2.5"/>'
-            f'<text class="call" x="{tx:.1f}" y="{ty + 4}" text-anchor="{anchor}">{label}</text></g>'
+            f'<text class="call" x="{tx:.1f}" y="{ty + 4}">{label}</text></g>'
         )
-
-    # footer
-    fy = base_y + 40
-    fade = "" if STATIC else f' style="opacity:0;animation:fade .6s ease-out {rise_total:.2f}s forwards"'
-    out.append(
-        f'<g{fade}><text class="foot" x="{LEFT}" y="{fy}">'
-        f'<tspan class="num">{data["total"]:,}</tspan> contributions in the last year'
-        f'   ·   current streak <tspan class="num">{data["current_streak"]}</tspan>d'
-        f'   ·   longest <tspan class="num">{data["longest_streak"]}</tspan>d</text></g>'
-    )
+    if LEGEND:
+        fy = base_y + 40
+        fade = "" if STATIC else f' style="opacity:0;animation:fade .6s ease-out {rise_total:.2f}s forwards"'
+        out.append(
+            f'<g{fade}><text class="foot" x="{LEFT}" y="{fy}">'
+            f'<tspan class="num">{data["total"]:,}</tspan> commits in the last year'
+            f'   ·   current streak <tspan class="num">{data["current_streak"]}</tspan>d'
+            f'   ·   longest <tspan class="num">{data["longest_streak"]}</tspan>d</text></g>'
+        )
     out.append("</svg>")
     OUT.write_text("\n".join(out), encoding="utf-8")
-    print(f"wrote {OUT} ({W}x{H}, {weeks} weeks, max {max_count})")
+    print(f"wrote {OUT} ({W}x{H}, {weeks} weeks, group={GROUP}, max {max_count})")
 
 
 if __name__ == "__main__":
